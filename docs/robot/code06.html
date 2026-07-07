@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Follow a line while a button is held - Robotics Camp 2026</title>
+        <title>Random turn command - Robotics Camp 2026</title>
 
 
         <!-- Custom HTML head -->
@@ -35,10 +35,10 @@
             const path_to_root = "../";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "../searchindex-72129cc1.js";
+            window.path_to_searchindex_js = "../searchindex-39483e9e.js";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="../toc-20be79f5.js"></script>
+        <script src="../toc-a86cdb2a.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -174,7 +174,45 @@
 
                 <div id="mdbook-content" class="content">
                     <main>
-                        <h1 id="follow-a-line-while-a-button-is-held"><a class="header" href="#follow-a-line-while-a-button-is-held">Follow a line while a button is held</a></h1>
+                        <h1 id="random-turn-command"><a class="header" href="#random-turn-command">Random turn command</a></h1>
+<p>Now let’s add a new command to turn the robot a random amount. As we’ve seen, commands can be used in both teleop and autonomous modes.</p>
+<p>This time you’re going to copy an existing command, <code>TurnDegrees</code>, and modify it.</p>
+<blockquote>
+<p>Duplicate commands/TurnDegrees.java by copying the file and pasting it in the commands folder.</p>
+</blockquote>
+<blockquote>
+<p>Rename the new file to TurnRandom.java</p>
+</blockquote>
+<blockquote>
+<p>Replace <code>TurnDegrees</code> in the new file with <code>TurnRandom</code> (on lines 13 and 18).</p>
+</blockquote>
+<blockquote>
+<p>Remove the word <code>final</code> from <code>private final double m_degrees;</code> and <code>private final double m_speed;</code></p>
+</blockquote>
+<p>Now change the constructor (the function at the top that you just renamed to <code>TurnRandom</code>) to remove all uses of <code>degrees</code>. It should look like this:</p>
+<pre><code class="language-java">public TurnRandom(Drivetrain drivetrain, double speed) {
+    m_drivetrain = drivetrain;
+    m_speed = speed;
+    addRequirements(drivetrain);
+}
+</code></pre>
+<p>We now have a new command called <code>TurnRandom</code>. It still works like <code>TurnDegrees</code>, only we never set how many degrees it should turn, so if you use it right now it will always turn 0 degrees, which is the same as doing nothing.</p>
+<p>What we want is for every time this command is run it picks a random number of degrees to turn. This way if it gets run repeatedly, it will do something different each time. To do something every time the command starts, we need to add code to the <code>initialize()</code> function.</p>
+<p>We can use <code>Math.random()</code> to get a random number between 0 and 1. What we’d like, though, is a random number between -90 and 90. We can do a little arithmatic with <code>Math.random()</code> to get there. Add this code to <code>initialize()</code>:</p>
+<pre><code class="language-java">m_degrees = (Math.random() * 180) - 90;
+</code></pre>
+<p>Almost done! There’s one small problem, though: the way this command works requires <code>m_degrees</code> to be positive, but we just set it to a random number between -90 and 90, so it will sometimes be negative. There used to be an <code>if</code> statement in the constructor that handled negative degrees, but we removed it. Let’s add it to <code>initialize()</code>, below the <code>m_degrees</code> line you just added:</p>
+<pre><code class="language-java">if (m_degrees &lt; 0) {
+    m_degrees = -m_degrees;
+    m_speed = -m_speed;
+}
+</code></pre>
+<p>Now if <code>m_degrees</code> is negative, <code>m_degrees</code> will be set to negative <code>m_degrees</code>, which makes it positive (the negative of a negative number is a positive number). At the same time, <code>m_speed</code> will be set to negative <code>m_speed</code>, which reverses the direction the robot turns.</p>
+<p>Let’s try it out!</p>
+<blockquote>
+<p>Open commands/AutonomousDistance.java and change <code>TurnDegrees</code> to <code>TurnRandom</code></p>
+</blockquote>
+<p>You will also need to remove the last argument from the commands you changed, since <code>TurnRandom</code> doesn’t have an argument for the number of degrees to turn. You may also want to surround the commands with <code>Commands.repeatingSequence</code>, like in commands/AutonomousFollow.java, so the routine repeats forever. Now, if you run the “Distance” autonomous routine, the robot should move around randomly.</p>
 
                     </main>
 

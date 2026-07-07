@@ -1,50 +1,30 @@
-# Random turn command
+# Drive straight
 
-Now let's add a new command to turn the robot a random amount. As we've seen, commands can be used in both teleop and autonomous modes.
+You may have noticed that the robot doesn't drive particularly straight when going over longer distances. This is due to small differences and electrical variations between the two motors. Even if both motors are told to spin at full speed, they won't spin at exactly the same speed, causing the robot to turn slightly as it drives.
 
-This time you're going to copy an existing command, `TurnDegrees`, and modify it.
+We can correct for this using the gyroscope. If the robot starts to veer left, it should correct itself by turning right, and if it starts to veer right, it should turn left. What we need to do is remember the value of the gyroscope when the robot starts driving, then compare it to the current value to see which way it needs to turn and how much. The `DriveForward` command is already set up to do this, but it's missing a little code.
 
-> Duplicate commands/TurnDegrees.java by copying the file and pasting it in the commands folder.
+> Open commands/DriveForward.java
 
-> Rename the new file to TurnRandom.java
+This command saves the value of the gyroscope when it starts. If you look in `initialize()`, you'll see this line of code: `m_forwardAngle = m_drivetrain.getGyroAngleZ();`
 
-> Replace `TurnDegrees` in the file with `TurnRandom` (on lines 13 and 18).
-
-> Remove the word `final` from `private final double m_degrees;` and `private final double m_speed;`
-
-Now change the constructor (the function at the top that you just renamed to `TurnRandom`) to remove all uses of `degrees`. It should look like this:
+Now we just need code in `execute()` to compare the current value of the gyroscope (`m_drivetrain.getGyroAngleZ()`) with the starting value (`m_forwardAngle`). We could use an if statement to check if it's greater or less, but there's an easier way. We're trying to get a number that tells the robot how much to turn. It should be positive to turn left, and negative to turn right. If we subtract the current value from the starting value, we'll get a number that's positive if the current value is less than the starting value, and negative if it's not. That's just what we need!
 
 ```java
-public TurnRandom(Drivetrain drivetrain, double speed) {
-    m_drivetrain = drivetrain;
-    m_speed = speed;
-    addRequirements(drivetrain);
-}
+double rotate = (m_forwardAngle - m_drivetrain.getGyroAngleZ()) / 100;
 ```
 
-We now have a new command called `TurnRandom`. It still works like `TurnDegrees`, only we never set how many degrees it should turn, so if you use it right now it will always turn 0 degrees, which is the same as doing nothing.
+Replace the line in `execute()` with the "TODO" comment with the line above. Notice we're also dividing by 100. This slows down how quickly the robot turns so it doesn't overcorrect.
 
-What we want is for every time this command is run it picks a random number of degrees to turn. This way if it gets run repeatedly, it will do something different each time. To do something every time the command starts, we need to add code to the `initialize()` function.
+Let's try it out by attaching the command to a controller button. We did this earlier with `TurnDegrees`.
 
-We can use `Math.random()` to get a random number between 0 and 1. What we'd like, though, is a random number between -90 and 90. We can do a little arithmatic with `Math.random()` to get there. Add this code to `initialize()`:
+> Open RobotContainer.java and look for the `configureTeleopBindings()` function.
+
+At the bottom of the function add this code:
 
 ```java
-m_degrees = (Math.random() * 180) - 90;
+// Hold the Y button to drive straight forward
+controller.y().whileTrue(new DriveForward(drivetrain, 1));
 ```
 
-Almost done! There's one small problem, though: the way this command works requires `m_degrees` to be positive, but we just set it to a random number between -90 and 90, so it will sometimes be negative. There used to be an `if` statement in the constructor that handled negative degrees, but we removed it. Let's add it to `initialize()`, below the `m_degrees` line you just added:
-
-```java
-if (m_degrees < 0) {
-    m_degrees = -m_degrees;
-    m_speed = -m_speed;
-}
-```
-
-Now if `m_degrees` is negative, `m_degrees` will be set to negative `m_degrees`, which makes it positive (the negative of a negative number is a positive number). At the same time, `m_speed` will be set to negative `m_speed`, which reverses the direction the robot turns.
-
-Let's try it out!
-
-> Open commands/AutonomousDistance.java and change `TurnDegrees` to `TurnRandom`
-
-You will also need to remove the last argument from the commands you changed, since `TurnRandom` doesn't have an argument for the number of degrees to turn. You may also want to surround the commands with `Commands.repeatingSequence`, like in commands/AutonomousFollow.java, so the routine repeats forever. Now, if you run the "Distance" autonomous routine, the robot should move around randomly.
+Now try holding down the Y button in teleop mode. Does the robot drive straighter than usual?
