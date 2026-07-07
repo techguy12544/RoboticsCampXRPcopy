@@ -7,6 +7,8 @@ package frc.robot;
 import frc.robot.commands.ArcadeDrive;
 import frc.robot.commands.AutonomousDistance;
 import frc.robot.commands.AutonomousFollow;
+import frc.robot.commands.BackAndForth;
+import frc.robot.commands.DriveForward;
 import frc.robot.commands.TurnDegrees;
 import frc.robot.subsystems.Arm;
 import frc.robot.subsystems.Drivetrain;
@@ -46,16 +48,18 @@ public class RobotContainer {
   private void configureTeleopBindings() {
     // Default command when nothing else is happening
     drivetrain.setDefaultCommand(getArcadeDriveCommand());
+    controller.y().whileTrue(new DriveForward(drivetrain, 1));
+
 
     // Quickly rotate left or right with the bumper buttons
-    // controller.leftBumper().onTrue( );
-    // controller.rightBumper().onTrue( );
+    controller.leftBumper().onTrue( new TurnDegrees(drivetrain,1,-90 ));
+     controller.rightBumper().onTrue(new TurnDegrees(drivetrain,1,90 ) );
 
     // Hold the A button to follow a line
     // controller.a().whileTrue(new FollowLine(drivetrain, lineFollower));
 
-    // Hold the B button to ram
-    // controller.b().whileTrue(new BackAndForth(drivetrain));
+    /////////////////// Hold the B button to ram
+     controller.b().whileTrue(new BackAndForth(drivetrain));
 
     // Hold the X button to rotate the servo out
     controller.x()
@@ -67,12 +71,17 @@ public class RobotContainer {
     // Add all autonomous routines to the chooser so they can be selected from the dashboard
     autonomousChooser.setDefaultOption("Distance", new AutonomousDistance(drivetrain, 10));
     autonomousChooser.addOption("Follow", new AutonomousFollow(drivetrain, rangefinder));
+   autonomousChooser.addOption("Back and Forth", new BackAndForth(drivetrain));
+
     SmartDashboard.putData(autonomousChooser);
   }
 
   public void dashboardPeriodic() {
     // Update the dashboard
     SmartDashboard.putNumber("Rangefinder", rangefinder.getDistanceInches());
+    SmartDashboard.putNumber("Line Follower Left", lineFollower.getLeftReflectanceValue());
+SmartDashboard.putNumber("Line Follower Right", lineFollower.getRightReflectanceValue());
+
   }
 
   // Returns the autonomous routine selected on the dashboard (used in Robot.java)

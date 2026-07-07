@@ -33,7 +33,7 @@ public class DriveForward extends Command {
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
-    double rotate = 0; // TODO
+double rotate = (m_forwardAngle - m_drivetrain.getGyroAngleZ()) / 100;
     m_drivetrain.arcadeDrive(m_speed, rotate);
   }
 
